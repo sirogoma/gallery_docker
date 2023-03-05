@@ -1,0 +1,58 @@
+version: "3"
+services:
+  frontend:
+    build:
+      dockerfile: ./frontend/Dockerfile
+    tty: true
+    ports:
+    - 3000:3000
+    volumes:
+    - ./frontend:/usr/src/app
+    - frontend_node_modules:/usr/src/app/node_modules
+    working_dir: /usr/src/app
+    environment:
+    - WATCHPACK_POLLING=true
+    command: sh -c "npm run dev"
+
+  backend:
+    build:
+      dockerfile: ./backend/Dockerfile
+    tty: true
+    ports:
+    - 4000:4000
+    volumes:
+    - ./backend:/usr/src/app
+    - backend_node_modules:/usr/src/app/node_modules
+    working_dir: /usr/src/app
+    command: sh -c "npm start"
+
+  gallary_db:
+    image: mysql:8-debian
+    volumes:
+      - ./mysql/DB:/docker-entrypoint-initdb.d  #初期データをマウントする場所
+      - db_store:/var/lib/mysql
+    ports:
+    - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=sirotan   #コンテナ内のMySQLを起動する際のパスワードを設定
+      - MYSQL_USER=sirotan
+      - MYSQL_PASSWORD=pass
+    command: --default-authentication-plugin=mysql_native_password #繋がらずで古いセキュリティ方式に変更
+
+  storybook:
+    build:
+      dockerfile: ./storybook/Dockerfile
+    tty: true
+    ports:
+    - 6006:6006
+    volumes:
+    - ./storybook:/usr/src/app
+    - storybook_node_modules:/usr/src/app/node_modules
+    working_dir: /usr/src/app
+    command: >
+
+volumes:
+  storybook_node_modules:
+  frontend_node_modules:
+  backend_node_modules:
+  db_store:
